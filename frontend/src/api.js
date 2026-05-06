@@ -30,8 +30,24 @@ async function request(path, options = {}) {
     ...options,
   });
 
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.detail || JSON.stringify(data));
+  const text = await response.text();
+  let data = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = {};
+    }
+  }
+
+  if (!response.ok) {
+    const firstError = Object.values(data)[0];
+    const message =
+      data.detail ||
+      (Array.isArray(firstError) ? firstError[0] : null) ||
+      `Request failed (${response.status})`;
+    throw new Error(message);
+  }
   return data;
 }
 

@@ -9,6 +9,7 @@ from .serializers import RegisterSerializer
 
 class LoginView(TokenObtainPairView):
     serializer_class = TokenObtainPairSerializer
+    permission_classes = [permissions.AllowAny]
 
 
 @api_view(["POST"])
