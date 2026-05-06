@@ -21,10 +21,16 @@ export default function App() {
     try {
       const profile = await api.me();
       setUser(profile);
-      await loadTodos();
     } catch {
       clearTokens();
       setUser(null);
+      return;
+    }
+
+    try {
+      await loadTodos();
+    } catch (err) {
+      setError(err.message || "Failed to load todos");
     }
   }
 
