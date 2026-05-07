@@ -2,8 +2,88 @@ import { useEffect, useState } from "react";
 import { api } from "./api";
 
 const emptyForm = { title: "", description: "" };
+const LANG_KEY = "uiLang";
+const i18n = {
+  en: {
+    title: "Todo App",
+    signIn: "Sign in to your dashboard",
+    createAccount: "Create your account",
+    username: "Username",
+    email: "Email",
+    password: "Password",
+    pleaseWait: "Please wait...",
+    login: "Login",
+    register: "Register",
+    needAccount: "Need an account? Register",
+    haveAccount: "Already have an account? Login",
+    dashboard: "Dashboard",
+    welcome: "Welcome",
+    logout: "Logout",
+    addTodo: "Add Todo",
+    editTodo: "Edit Todo",
+    todoTitle: "Title",
+    todoDescription: "Description",
+    update: "Update",
+    create: "Create",
+    cancel: "Cancel",
+    yourTodos: "Your Todos",
+    searchTitle: "Search title...",
+    search: "Search",
+    clear: "Clear",
+    noTasks: "No tasks yet.",
+    noDescription: "No description",
+    markPending: "Mark Pending",
+    markDone: "Mark Done",
+    edit: "Edit",
+    delete: "Delete",
+    previous: "Previous",
+    next: "Next",
+    page: "Page",
+    of: "of",
+    langButton: "日本語",
+  },
+  ja: {
+    title: "Todo アプリ",
+    signIn: "ダッシュボードにログイン",
+    createAccount: "アカウントを作成",
+    username: "ユーザー名",
+    email: "メールアドレス",
+    password: "パスワード",
+    pleaseWait: "処理中...",
+    login: "ログイン",
+    register: "登録",
+    needAccount: "アカウントが必要ですか？登録",
+    haveAccount: "アカウントをお持ちですか？ログイン",
+    dashboard: "ダッシュボード",
+    welcome: "ようこそ",
+    logout: "ログアウト",
+    addTodo: "Todo を追加",
+    editTodo: "Todo を編集",
+    todoTitle: "タイトル",
+    todoDescription: "説明",
+    update: "更新",
+    create: "作成",
+    cancel: "キャンセル",
+    yourTodos: "あなたの Todo",
+    searchTitle: "タイトルで検索...",
+    search: "検索",
+    clear: "クリア",
+    noTasks: "タスクはまだありません。",
+    noDescription: "説明なし",
+    markPending: "未完了にする",
+    markDone: "完了にする",
+    edit: "編集",
+    delete: "削除",
+    previous: "前へ",
+    next: "次へ",
+    page: "ページ",
+    of: "/",
+    langButton: "English",
+  },
+};
 
 export default function App() {
+  const [lang, setLang] = useState(localStorage.getItem(LANG_KEY) || "en");
   const [mode, setMode] = useState("login");
   const [authForm, setAuthForm] = useState({ username: "", email: "", password: "" });
   const [user, setUser] = useState(null);
@@ -16,10 +96,17 @@ export default function App() {
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const t = i18n[lang] || i18n.en;
 
   useEffect(() => {
     bootstrap();
   }, []);
+
+  function toggleLanguage() {
+    const next = lang === "en" ? "ja" : "en";
+    setLang(next);
+    localStorage.setItem(LANG_KEY, next);
+  }
 
   async function bootstrap() {
     try {
@@ -117,15 +204,24 @@ export default function App() {
       <main className="mx-auto flex min-h-screen max-w-5xl items-center justify-center px-4 py-8">
         <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
           <div className="mb-6">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Todo App</h1>
+            <div className="mb-2 flex justify-end">
+              <button
+                className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+                onClick={toggleLanguage}
+                type="button"
+              >
+                {t.langButton}
+              </button>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">{t.title}</h1>
             <p className="mt-2 text-sm text-slate-600">
-              {mode === "login" ? "Sign in to your dashboard" : "Create your account"}
+              {mode === "login" ? t.signIn : t.createAccount}
             </p>
           </div>
           <form onSubmit={onAuthSubmit} className="space-y-3">
             <input
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              placeholder="Username"
+              placeholder={t.username}
               value={authForm.username}
               onChange={(e) => setAuthForm({ ...authForm, username: e.target.value })}
               required
@@ -133,7 +229,7 @@ export default function App() {
             {mode === "register" && (
               <input
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                placeholder="Email"
+                placeholder={t.email}
                 type="email"
                 value={authForm.email}
                 onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
@@ -141,7 +237,7 @@ export default function App() {
             )}
             <input
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              placeholder="Password"
+              placeholder={t.password}
               type="password"
               value={authForm.password}
               onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
@@ -152,14 +248,14 @@ export default function App() {
               type="submit"
               disabled={loading}
             >
-              {loading ? "Please wait..." : mode === "login" ? "Login" : "Register"}
+              {loading ? t.pleaseWait : mode === "login" ? t.login : t.register}
             </button>
           </form>
           <button
             className="mt-4 text-sm font-medium text-blue-600 transition hover:text-blue-700"
             onClick={() => setMode(mode === "login" ? "register" : "login")}
           >
-            {mode === "login" ? "Need an account? Register" : "Already have an account? Login"}
+            {mode === "login" ? t.needAccount : t.haveAccount}
           </button>
           {error && <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
         </section>
@@ -171,30 +267,38 @@ export default function App() {
     <main className="mx-auto min-h-screen max-w-5xl px-4 py-8">
       <header className="mb-6 flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-sm text-slate-600">Welcome, {user.username}</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t.dashboard}</h1>
+          <p className="text-sm text-slate-600">{t.welcome}, {user.username}</p>
         </div>
-        <button
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-          onClick={logout}
-        >
-          Logout
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+            onClick={toggleLanguage}
+          >
+            {t.langButton}
+          </button>
+          <button
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+            onClick={logout}
+          >
+            {t.logout}
+          </button>
+        </div>
       </header>
 
       <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">{editingId ? "Edit Todo" : "Add Todo"}</h2>
+        <h2 className="text-lg font-semibold text-slate-900">{editingId ? t.editTodo : t.addTodo}</h2>
         <form onSubmit={onTodoSubmit} className="mt-3 space-y-3">
           <input
             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            placeholder="Title"
+            placeholder={t.todoTitle}
             value={todoForm.title}
             onChange={(e) => setTodoForm({ ...todoForm, title: e.target.value })}
             required
           />
           <textarea
             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            placeholder="Description"
+            placeholder={t.todoDescription}
             value={todoForm.description}
             onChange={(e) => setTodoForm({ ...todoForm, description: e.target.value })}
           />
@@ -203,7 +307,7 @@ export default function App() {
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
               type="submit"
             >
-              {editingId ? "Update" : "Create"}
+              {editingId ? t.update : t.create}
             </button>
             {editingId && (
               <button
@@ -214,7 +318,7 @@ export default function App() {
                   setTodoForm(emptyForm);
                 }}
               >
-                Cancel
+                {t.cancel}
               </button>
             )}
           </div>
@@ -223,7 +327,7 @@ export default function App() {
 
       <section>
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Your Todos</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t.yourTodos}</h2>
           <form
             className="flex gap-2"
             onSubmit={(e) => {
@@ -234,7 +338,7 @@ export default function App() {
           >
             <input
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              placeholder="Search title..."
+              placeholder={t.searchTitle}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -242,13 +346,24 @@ export default function App() {
               type="submit"
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
             >
-              Search
+              {t.search}
+            </button>
+            <button
+              type="button"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              onClick={() => {
+                setSearchInput("");
+                setSearch("");
+                setPage(1);
+              }}
+            >
+              {t.clear}
             </button>
           </form>
         </div>
         {todos.length === 0 ? (
           <p className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
-            No tasks yet.
+            {t.noTasks}
           </p>
         ) : (
           <ul className="space-y-3">
@@ -262,26 +377,26 @@ export default function App() {
                   >
                     {todo.title}
                   </h3>
-                  <p className="mt-1 text-sm text-slate-600">{todo.description || "No description"}</p>
+                  <p className="mt-1 text-sm text-slate-600">{todo.description || t.noDescription}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button
                     className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700"
                     onClick={() => toggleTodo(todo)}
                   >
-                    {todo.completed ? "Mark Pending" : "Mark Done"}
+                    {todo.completed ? t.markPending : t.markDone}
                   </button>
                   <button
                     className="rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-amber-600"
                     onClick={() => startEdit(todo)}
                   >
-                    Edit
+                    {t.edit}
                   </button>
                   <button
                     className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700"
                     onClick={() => deleteTodo(todo.id)}
                   >
-                    Delete
+                    {t.delete}
                   </button>
                 </div>
               </li>
@@ -294,17 +409,17 @@ export default function App() {
             disabled={page <= 1}
             onClick={() => setPage((prev) => Math.max(1, prev - 1))}
           >
-            Previous
+            {t.previous}
           </button>
           <p className="text-sm text-slate-600">
-            Page {page} of {totalPages}
+            {t.page} {page} {t.of} {totalPages}
           </p>
           <button
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={page >= totalPages}
             onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
           >
-            Next
+            {t.next}
           </button>
         </div>
       </section>

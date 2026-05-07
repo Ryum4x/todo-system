@@ -63,6 +63,7 @@ def refresh_view(request):
         httponly=True,
         secure=settings.COOKIE_SECURE,
         samesite=settings.COOKIE_SAMESITE,
+        path="/",
         max_age=int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()),
     )
     return response
@@ -71,8 +72,8 @@ def refresh_view(request):
 @api_view(["POST"])
 def logout_view(request):
     response = Response({"detail": "Logged out"})
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("refresh_token", path="/")
     return response
 
 
@@ -84,6 +85,7 @@ def set_auth_cookies(response, access_token, refresh_token):
             httponly=True,
             secure=settings.COOKIE_SECURE,
             samesite=settings.COOKIE_SAMESITE,
+            path="/",
             max_age=int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()),
         )
 
@@ -94,5 +96,6 @@ def set_auth_cookies(response, access_token, refresh_token):
             httponly=True,
             secure=settings.COOKIE_SECURE,
             samesite=settings.COOKIE_SAMESITE,
+            path="/",
             max_age=int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()),
         )

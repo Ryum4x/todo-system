@@ -1,11 +1,15 @@
-# Django + React Todo App
+# Django + React Todo アプリ
 
-Simple full-stack todo app with:
-- User registration and login (JWT auth)
-- Protected dashboard
-- Full CRUD for todos (create/read/update/delete)
+Django（DRF）と React（Vite）で構成したフルスタック Todo アプリです。
 
-## Backend (Django + DRF)
+- ユーザー登録 / ログイン
+- 保護されたダッシュボード
+- Todo の CRUD（作成・一覧・更新・削除）
+- タイトル検索
+- ページネーション
+- 英語 / 日本語 UI 切り替え
+
+## バックエンド（Django + DRF）
 
 ```bash
 cd backend
@@ -18,9 +22,9 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Backend runs at `http://127.0.0.1:8000`
+バックエンドは `http://127.0.0.1:8000` で起動します。
 
-## Frontend (React + Vite)
+## フロントエンド（React + Vite）
 
 ```bash
 cd frontend
@@ -28,47 +32,71 @@ npm install
 npm run dev
 ```
 
-Frontend runs at `http://127.0.0.1:5173`
+フロントエンドは `http://127.0.0.1:5173` で起動します。
 
-Set frontend API URL locally with:
+## ローカル環境変数の設定
+
+フロントエンド:
 
 ```bash
 cd frontend
 cp .env.example .env
 ```
 
-Set backend env values locally with:
+バックエンド:
 
 ```bash
 cd backend
 cp .env.example .env
 ```
 
-## API Routes
+## API ルート
 
 - `POST /api/auth/register/`
 - `POST /api/auth/login/`
 - `POST /api/auth/refresh/`
+- `POST /api/auth/logout/`
 - `GET /api/auth/me/`
 - `GET/POST /api/todos/`
 - `GET/PUT/PATCH/DELETE /api/todos/<id>/`
 
-## Deploy on Render
+`/api/todos/` は以下のクエリパラメータに対応しています。
 
-This repository includes a `render.yaml` Blueprint that provisions:
-- Django API (`todo-backend`)
-- React static site (`todo-frontend`)
-- PostgreSQL database (`todo-db`)
+- `page`: ページ番号
+- `search`: タイトル部分一致検索
 
-### Steps
+## 認証方式
 
-1. Push this repository to GitHub.
-2. In Render, create a new Blueprint and select this repository.
-3. Confirm the generated service names/domains and update these env vars if you use different names:
+JWT は HttpOnly Cookie で管理しています（`localStorage` には保存しません）。
+
+- `access_token`（短期）
+- `refresh_token`（長期）
+
+クロスドメイン運用（Render など）では、以下の設定が重要です。
+
+- `COOKIE_SECURE=True`
+- `COOKIE_SAMESITE=None`
+- `CORS_ALLOWED_ORIGINS` と `CSRF_TRUSTED_ORIGINS` を正しく設定
+
+## Render へのデプロイ
+
+このリポジトリには `render.yaml`（Blueprint）が含まれており、以下を自動作成します。
+
+- Django API（`todo-backend`）
+- React Static Site（`todo-frontend`）
+- PostgreSQL（`todo-db`）
+
+### 手順
+
+1. GitHub に push する
+2. Render で Blueprint を作成し、このリポジトリを選択する
+3. サービス名 / ドメインが異なる場合は、次の環境変数を実際の値に合わせる
    - `ALLOWED_HOSTS`
    - `CORS_ALLOWED_ORIGINS`
    - `CSRF_TRUSTED_ORIGINS`
    - `VITE_API_BASE_URL`
-4. Deploy.
+   - `COOKIE_SECURE`
+   - `COOKIE_SAMESITE`
+4. デプロイする
 
-Render runs migrations and static collection during backend start.
+バックエンド起動時に migration と `collectstatic` が自動実行されます。

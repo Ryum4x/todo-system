@@ -123,5 +123,7 @@ SIMPLE_JWT = {
 
 CORS_ALLOW_CREDENTIALS = True
 
+# When frontend/backend are on different domains, SameSite must be None
+# (and cookies must be Secure) for browsers to include them on XHR/fetch.
 COOKIE_SECURE = os.getenv("COOKIE_SECURE", "True").lower() == "true"
-COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "Lax")
+COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "None")
