@@ -108,9 +108,11 @@ CSRF_TRUSTED_ORIGINS = [origin.rstrip("/") for origin in parse_csv_env("CSRF_TRU
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "accounts.authentication.CookieJWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": int(os.getenv("PAGE_SIZE", "10")),
 }
 
 SIMPLE_JWT = {
@@ -118,3 +120,8 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+CORS_ALLOW_CREDENTIALS = True
+
+COOKIE_SECURE = os.getenv("COOKIE_SECURE", "True").lower() == "true"
+COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "Lax")

@@ -8,7 +8,11 @@ class TodoViewSet(viewsets.ModelViewSet):
     serializer_class = TodoSerializer
 
     def get_queryset(self):
-        return Todo.objects.filter(owner=self.request.user)
+        queryset = Todo.objects.filter(owner=self.request.user)
+        search = self.request.query_params.get("search", "").strip()
+        if search:
+            queryset = queryset.filter(title__icontains=search)
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, clearTokens, getTokens, setTokens } from "./api";
+import { api } from "./api";
 
 const emptyForm = { title: "", description: "" };
 
@@ -8,13 +8,17 @@ export default function App() {
   const [authForm, setAuthForm] = useState({ username: "", email: "", password: "" });
   const [user, setUser] = useState(null);
   const [todos, setTodos] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [todoForm, setTodoForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (getTokens().access) bootstrap();
+    bootstrap();
   }, []);
 
   async function bootstrap() {
@@ -22,32 +26,33 @@ export default function App() {
       const profile = await api.me();
       setUser(profile);
     } catch {
-      clearTokens();
       setUser(null);
       return;
     }
 
-    try {
-      await loadTodos();
-    } catch (err) {
-      setError(err.message || "Failed to load todos");
-    }
   }
 
   async function loadTodos() {
-    setTodos(await api.listTodos());
+    const data = await api.listTodos({ page, search });
+    setTodos(data.results || []);
+    setTotalPages(Math.max(1, Math.ceil((data.count || 0) / 10)));
   }
+
+  useEffect(() => {
+    if (!user) return;
+    loadTodos().catch((err) => setError(err.message || "Failed to load todos"));
+  }, [user, page, search]);
 
   async function onAuthSubmit(e) {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const payload =
-        mode === "register"
-          ? await api.register(authForm)
-          : await api.login({ username: authForm.username, password: authForm.password });
-      setTokens(payload);
+      if (mode === "register") {
+        await api.register(authForm);
+      } else {
+        await api.login({ username: authForm.username, password: authForm.password });
+      }
       await bootstrap();
     } catch (err) {
       setError(err.message || "Authentication failed");
@@ -72,7 +77,7 @@ export default function App() {
       }
       setTodoForm(emptyForm);
       setEditingId(null);
-      await loadTodos();
+      await loadTodos().catch(() => null);
     } catch (err) {
       setError(err.message || "Failed to save todo");
     }
@@ -85,7 +90,7 @@ export default function App() {
 
   async function toggleTodo(todo) {
     await api.patchTodo(todo.id, { completed: !todo.completed });
-    await loadTodos();
+    await loadTodos().catch(() => null);
   }
 
   async function deleteTodo(id) {
@@ -94,14 +99,17 @@ export default function App() {
       setEditingId(null);
       setTodoForm(emptyForm);
     }
-    await loadTodos();
+    await loadTodos().catch(() => null);
   }
 
-  function logout() {
-    clearTokens();
+  async function logout() {
+    await api.logout().catch(() => null);
     setUser(null);
     setTodos([]);
     setMode("login");
+    setPage(1);
+    setSearch("");
+    setSearchInput("");
   }
 
   if (!user) {
@@ -214,7 +222,30 @@ export default function App() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold text-slate-900">Your Todos</h2>
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold text-slate-900">Your Todos</h2>
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setPage(1);
+              setSearch(searchInput.trim());
+            }}
+          >
+            <input
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              placeholder="Search title..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+            >
+              Search
+            </button>
+          </form>
+        </div>
         {todos.length === 0 ? (
           <p className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
             No tasks yet.
@@ -257,6 +288,25 @@ export default function App() {
             ))}
           </ul>
         )}
+        <div className="mt-4 flex items-center justify-between">
+          <button
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={page <= 1}
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+          >
+            Previous
+          </button>
+          <p className="text-sm text-slate-600">
+            Page {page} of {totalPages}
+          </p>
+          <button
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={page >= totalPages}
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+          >
+            Next
+          </button>
+        </div>
       </section>
 
       {error && <p className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
