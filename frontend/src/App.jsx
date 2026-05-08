@@ -3,6 +3,7 @@ import { api } from "./api";
 
 const emptyForm = { title: "", description: "" };
 const LANG_KEY = "uiLang";
+const THEME_KEY = "uiTheme";
 const i18n = {
   en: {
     title: "Todo App",
@@ -41,6 +42,8 @@ const i18n = {
     page: "Page",
     of: "of",
     langButton: "日本語",
+    darkMode: "Dark",
+    lightMode: "Light",
   },
   ja: {
     title: "Todo アプリ",
@@ -79,11 +82,14 @@ const i18n = {
     page: "ページ",
     of: "/",
     langButton: "English",
+    darkMode: "ダーク",
+    lightMode: "ライト",
   },
 };
 
 export default function App() {
   const [lang, setLang] = useState(localStorage.getItem(LANG_KEY) || "en");
+  const [theme, setTheme] = useState(localStorage.getItem(THEME_KEY) || "light");
   const [mode, setMode] = useState("login");
   const [authForm, setAuthForm] = useState({ username: "", email: "", password: "" });
   const [user, setUser] = useState(null);
@@ -102,10 +108,19 @@ export default function App() {
     bootstrap();
   }, []);
 
+  useEffect(() => {
+    document.body.classList.toggle("theme-dark", theme === "dark");
+    localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
+
   function toggleLanguage() {
     const next = lang === "en" ? "ja" : "en";
     setLang(next);
     localStorage.setItem(LANG_KEY, next);
+  }
+
+  function toggleTheme() {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   }
 
   async function bootstrap() {
@@ -206,6 +221,13 @@ export default function App() {
           <div className="mb-6">
             <div className="mb-2 flex justify-end">
               <button
+                className="soft-btn mr-2 px-3 py-1 text-xs"
+                onClick={toggleTheme}
+                type="button"
+              >
+                {theme === "dark" ? t.lightMode : t.darkMode}
+              </button>
+              <button
                 className="soft-btn px-3 py-1 text-xs"
                 onClick={toggleLanguage}
                 type="button"
@@ -271,6 +293,12 @@ export default function App() {
           <p className="text-sm text-slate-600">{t.welcome}, {user.username}</p>
         </div>
         <div className="flex gap-2">
+          <button
+            className="soft-btn px-3 py-2"
+            onClick={toggleTheme}
+          >
+            {theme === "dark" ? t.lightMode : t.darkMode}
+          </button>
           <button
             className="soft-btn px-3 py-2"
             onClick={toggleLanguage}
