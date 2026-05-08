@@ -1,14 +1,13 @@
 from django.db import migrations
 
 
-class Migration(migrations.Migration):
-    dependencies = [
-        ("todos", "0001_initial"),
-    ]
+def repair_owner_id_column(apps, schema_editor):
+    if schema_editor.connection.vendor != "postgresql":
+        return
 
-    operations = [
-        migrations.RunSQL(
-            sql="""
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(
+            """
             ALTER TABLE todos_todo
             ADD COLUMN IF NOT EXISTS owner_id bigint;
 
@@ -38,8 +37,17 @@ class Migration(migrations.Migration):
 
             ALTER TABLE todos_todo
             ALTER COLUMN owner_id SET NOT NULL;
-            """,
-            reverse_sql="""
+            """
+        )
+
+
+def reverse_repair_owner_id_column(apps, schema_editor):
+    if schema_editor.connection.vendor != "postgresql":
+        return
+
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(
+            """
             ALTER TABLE todos_todo
             DROP CONSTRAINT IF EXISTS todos_todo_owner_id_fk;
 
@@ -47,6 +55,15 @@ class Migration(migrations.Migration):
 
             ALTER TABLE todos_todo
             DROP COLUMN IF EXISTS owner_id;
-            """,
-        ),
+            """
+        )
+
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ("todos", "0001_initial"),
+    ]
+
+    operations = [
+        migrations.RunPython(repair_owner_id_column, reverse_repair_owner_id_column),
     ]
